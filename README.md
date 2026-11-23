@@ -1,4 +1,4 @@
-# Aashiq Hasnat — Portfolio
+# Aashiq Hasnat | Portfolio
 
 Personal portfolio and root GitHub Pages site for **Aashiq Hasnat**, Indie Mobile & Game Developer.
 

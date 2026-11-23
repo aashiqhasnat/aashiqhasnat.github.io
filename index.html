@@ -109,23 +109,43 @@
     @keyframes rise { from { opacity: 0; transform: translateY(10px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
     .rise { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i, 0) * 80ms); }
 
-    /* Minimal 3-card auto-shuffling hero deck */
-    .deck-stage { position: relative; height: 264px; }
+    /* Minimal 3-card physical auto-shuffling hero deck */
+    .deck-stage { position: relative; height: 264px; --peel-x: 20px; }
+    @media (min-width: 640px) { .deck-stage { --peel-x: 42px; } }
     .deck-card {
       position: absolute; inset: 22px 22px 0 0;
-      transition: transform .55s cubic-bezier(.22,1,.36,1), opacity .45s ease, border-color .3s ease;
+      transition: transform .52s cubic-bezier(.22, 1.08, .36, 1), opacity .4s ease, box-shadow .4s ease, border-color .3s ease;
       will-change: transform, opacity;
     }
     .deck-card > * { transition: opacity .35s ease; }
-    .deck-card[data-slot="0"] { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); z-index: 30; opacity: 1; cursor: pointer; }
-    .deck-card[data-slot="1"] { transform: translate3d(10px, -11px, 0) scale(.96) rotate(1.3deg); z-index: 20; opacity: 1; pointer-events: none; }
+    .deck-card[data-slot="0"] {
+      transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+      z-index: 30; opacity: 1; cursor: pointer;
+    }
+    .deck-card[data-slot="0"]:hover {
+      transform: translate3d(-2px, -3px, 0) scale(1.005) rotate(-.4deg);
+    }
+    .deck-card[data-slot="1"] {
+      transform: translate3d(10px, -11px, 0) scale(.96) rotate(1.4deg);
+      z-index: 20; opacity: 1; pointer-events: none;
+    }
     .deck-card[data-slot="1"] > * { opacity: .28; }
-    .deck-card[data-slot="2"] { transform: translate3d(20px, -22px, 0) scale(.92) rotate(2.6deg); z-index: 10; opacity: 1; pointer-events: none; }
+    .deck-card[data-slot="2"] {
+      transform: translate3d(20px, -22px, 0) scale(.92) rotate(2.8deg);
+      z-index: 10; opacity: 1; pointer-events: none;
+    }
     .deck-card[data-slot="2"] > * { opacity: .12; }
-    .deck-card.is-leaving {
-      transform: translate3d(36px, 8px, 0) scale(.95) rotate(4deg);
-      z-index: 35; opacity: 0;
-      transition: transform .26s cubic-bezier(.4,0,1,1), opacity .22s ease;
+
+    /* Phase 1: peel front card out along a smooth arc */
+    .deck-card.is-peeling {
+      transform: translate3d(var(--peel-x), -16px, 0) scale(.96) rotate(5.5deg) !important;
+      z-index: 35 !important; opacity: .96; pointer-events: none;
+      transition: transform .27s cubic-bezier(.32, 0, .2, 1), box-shadow .27s ease;
+    }
+    /* Phase 2: drop z-index and tuck smoothly into the back of the deck */
+    .deck-card.is-tucking {
+      z-index: 5 !important; pointer-events: none;
+      transition: transform .42s cubic-bezier(.22, 1, .36, 1), opacity .35s ease;
     }
 
     @keyframes road { to { stroke-dashoffset: -24; } }
@@ -269,16 +289,6 @@
               <span>MySQL</span>
             </div>
           </div>
-        </div>
-
-        <!-- Minimal deck switcher -->
-        <div class="mt-3.5 flex items-center justify-between pr-5">
-          <div class="flex items-center gap-1" role="tablist" aria-label="Preview deck cards">
-            <button type="button" data-deck-pick="0" class="rounded-full bg-secondary px-2.5 py-1 font-mono text-[11px] text-foreground transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-ring">App</button>
-            <button type="button" data-deck-pick="1" class="rounded-full px-2.5 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring">Game</button>
-            <button type="button" data-deck-pick="2" class="rounded-full px-2.5 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring">Backend</button>
-          </div>
-          <span class="font-mono text-[10px] text-muted-foreground">click to shuffle</span>
         </div>
       </div>
     </section>
@@ -424,26 +434,19 @@
       });
     });
 
-    // Auto-shuffling 3-card hero deck
+    // Auto-shuffling 3-card hero deck (2-phase peel & tuck)
     (function () {
       var deck = document.getElementById('hero-deck');
       if (!deck) return;
       var cards = Array.prototype.slice.call(deck.querySelectorAll('.deck-card'));
-      var picks = Array.prototype.slice.call(document.querySelectorAll('[data-deck-pick]'));
       var order = [0, 1, 2];
       var busy = false;
       var paused = false;
       var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      function render() {
+      function applySlots() {
         order.forEach(function (cardIdx, slot) {
           cards[cardIdx].dataset.slot = String(slot);
-        });
-        picks.forEach(function (btn, idx) {
-          var active = idx === order[0];
-          btn.classList.toggle('bg-secondary', active);
-          btn.classList.toggle('text-foreground', active);
-          btn.classList.toggle('text-muted-foreground', !active);
         });
       }
 
@@ -451,42 +454,39 @@
         if (busy) return;
         busy = true;
         var front = cards[order[0]];
-        front.classList.add('is-leaving');
-        setTimeout(function () {
-          order.push(order.shift());
-          front.classList.remove('is-leaving');
-          render();
-          busy = false;
-        }, reduced ? 0 : 250);
-      }
 
-      function bringToFront(targetIdx) {
-        if (busy || order[0] === targetIdx) return;
-        busy = true;
-        var front = cards[order[0]];
-        front.classList.add('is-leaving');
-        setTimeout(function () {
-          while (order[0] !== targetIdx) order.push(order.shift());
-          front.classList.remove('is-leaving');
-          render();
+        if (reduced) {
+          order.push(order.shift());
+          applySlots();
           busy = false;
-        }, reduced ? 0 : 220);
+          return;
+        }
+
+        // Phase 1: peel front card out while promoting behind cards slightly after
+        front.classList.add('is-peeling');
+
+        setTimeout(function () {
+          // Phase 2: drop behind the stack and glide smoothly into back slot
+          order.push(order.shift());
+          front.classList.remove('is-peeling');
+          front.classList.add('is-tucking');
+          applySlots();
+
+          setTimeout(function () {
+            front.classList.remove('is-tucking');
+            busy = false;
+          }, 420);
+        }, 270);
       }
 
       deck.addEventListener('click', shuffleNext);
       deck.addEventListener('mouseenter', function () { paused = true; });
       deck.addEventListener('mouseleave', function () { paused = false; });
 
-      picks.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          bringToFront(Number(btn.dataset.deckPick));
-        });
-      });
-
       if (!reduced) {
         setInterval(function () {
           if (!paused && !document.hidden) shuffleNext();
-        }, 3400);
+        }, 3200);
       }
     })();
   </script>

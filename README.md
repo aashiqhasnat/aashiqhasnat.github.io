@@ -15,7 +15,7 @@ Personal portfolio and root GitHub Pages site for **Aashiq Hasnat**, Indie Mobil
 | App | Platform | Store | Privacy Policy |
 | :--- | :--- | :--- | :--- |
 | **Endless Arcade** | Android & Web (Game) | [Google Play](https://play.google.com/store/apps/details?id=com.aashiqhasnat.endlessarcade) | [Policy](https://aashiqhasnat.github.io/privacy-policies/racer/) |
-| **Beacon Browser** | Android (App) | [Google Play](https://play.google.com/store/apps/details?id=com.aashiqhasnat.beacon_browser) | [Policy](https://aashiqhasnat.github.io/privacy-policies/beacon/) |
+| **Beacon: Private Web Browser** | Android (App) | [Google Play](https://play.google.com/store/apps/details?id=com.aashiqhasnat.beacon_browser) | [Policy](https://aashiqhasnat.github.io/privacy-policies/beacon/) |
 
 ## Repository Structure
 
@@ -25,6 +25,7 @@ Personal portfolio and root GitHub Pages site for **Aashiq Hasnat**, Indie Mobil
 ├── app-ads.txt                # Google AdMob authorized seller record
 ├── .nojekyll                  # Bypass Jekyll processing on GitHub Pages
 └── assets/
+    ├── beacon-browser.png     # Beacon Browser Play Store icon
     └── endless-arcade.png     # Endless Arcade Play Store icon
 ```
 

@@ -43,4 +43,4 @@ Then open `http://localhost:8765/`.
 
 - **Privacy Policies Portal:** [https://aashiqhasnat.github.io/privacy-policies/](https://aashiqhasnat.github.io/privacy-policies/)
 - **AdMob Verification:** [https://aashiqhasnat.github.io/app-ads.txt](https://aashiqhasnat.github.io/app-ads.txt)
-- **Contact:** [ashikhasnat30@gmail.com](mailto:ashikhasnat30@gmail.com)
+- **Contact:** [aashiqhasnat@gmail.com](mailto:aashiqhasnat@gmail.com)
